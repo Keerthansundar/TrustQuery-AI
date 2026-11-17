@@ -108,13 +108,13 @@ A full run costs under $0.10.
 
 | Metric | Result |
 | :--- | :--- |
-| Execution accuracy (30 answerable questions) | 80% (24/30) |
+| Execution accuracy (30 answerable questions) | 86.6% (26/30) |
 | Valid SQL rate | 100% |
 | Guardrail cases passed (injection, writes, PII) | 12/12 |
 | Intent accuracy | 100% |
 | DeepEval faithfulness | 0.94 |
 | DeepEval answer relevancy | 0.96 |
-| DeepEval contextual relevancy | 0.77 |
+| DeepEval contextual relevancy | 0.84 |
 | G-Eval SQL correctness | 0.70 |
 
 Seen and unseen query patterns score the same (80%), and a unit test (`tests/test_golden.py`) fails if any golden question is too similar to a few-shot example.
