@@ -6,6 +6,19 @@ Built in plain Python with schema-aware RAG (PostgreSQL 16 + pgvector), SQL guar
 
 ## How it works
 
+```mermaid
+flowchart LR
+    Q([Question]) --> IG[Input guardrail]
+    IG --> P[Intent planner]
+    P -->|chitchat / unclear| R([Direct reply or clarifying question])
+    P -->|data question / follow-up| RW[Query rewriter]
+    RW --> RT[Hybrid retrieval<br/>pgvector + BM25 + rerank]
+    RT --> G[SQL generator]
+    G --> V[SQL guardrail<br/>sqlglot]
+    V --> E[(Read-only execution)]
+    E -->|error or empty result| G
+    E --> O[Output guardrail] --> X[Explainer] --> A([Answer])
+```
 
 1. **Input guardrail** blocks prompt injection and masks PII.
 2. **Intent planner** routes chitchat, unclear questions, follow-ups and data questions.
@@ -115,3 +128,6 @@ Seen and unseen query patterns score the same (80%), and a unit test (`tests/tes
 ## Tech stack
 
 Python, OpenAI API, PostgreSQL 16, pgvector, sqlglot, Pydantic, DeepEval, Streamlit, Docker.
+
+
+
