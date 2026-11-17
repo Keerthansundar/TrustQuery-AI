@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: text2sql
+          POSTGRES_USER: owner
+          POSTGRES_PASSWORD: ci_owner_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lint with Ruff
+        run: |
+          ruff check .
+
+      - name: Run Unit Tests
+        env:
+          OPENAI_API_KEY: sk-test-mock-key-openai
+        run: |
+          pytest -m "not integration" -v
+
+      - name: Initialize PostgreSQL database for Integration Tests
+        env:
+          PGPASSWORD: ci_owner_password
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: text2sql
+          POSTGRES_USER: owner
+          ANALYST_RO_PASSWORD: ci_analyst_ro_password
+          ANALYST_PII_RO_PASSWORD: ci_analyst_pii_ro_password
+          APP_RW_PASSWORD: ci_app_rw_password
+        run: |
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+          
+          # 1. Create tables and constraints
+          psql -h 127.0.0.1 -U owner -d text2sql -f db/init/01_schema.sql
+          
+          # 2. Load raw data CSVs in FK dependency order via client \copy
+          psql -h 127.0.0.1 -U owner -d text2sql -c "\copy public.categories FROM 'data/raw/categories.csv' WITH (FORMAT csv, HEADER true);"
+          psql -h 127.0.0.1 -U owner -d text2sql -c "\copy public.customers FROM 'data/raw/customers.csv' WITH (FORMAT csv, HEADER true);"
+          psql -h 127.0.0.1 -U owner -d text2sql -c "\copy public.products FROM 'data/raw/products.csv' WITH (FORMAT csv, HEADER true);"
+          psql -h 127.0.0.1 -U owner -d text2sql -c "\copy public.orders FROM 'data/raw/orders.csv' WITH (FORMAT csv, HEADER true);"
+          psql -h 127.0.0.1 -U owner -d text2sql -c "\copy public.order_items FROM 'data/raw/order_items.csv' WITH (FORMAT csv, HEADER true);"
+          psql -h 127.0.0.1 -U owner -d text2sql -c "\copy public.payments FROM 'data/raw/payments.csv' WITH (FORMAT csv, HEADER true);"
+          psql -h 127.0.0.1 -U owner -d text2sql -c "\copy public.shipments FROM 'data/raw/shipments.csv' WITH (FORMAT csv, HEADER true);"
+          psql -h 127.0.0.1 -U owner -d text2sql -c "ANALYZE;"
+          
+          # 3. Create RAG and App metadata tables
+          psql -h 127.0.0.1 -U owner -d text2sql -f db/init/03_rag_app.sql
+          
+          # 4. Create database security roles
+          chmod +x db/init/04_roles.sh
+          ./db/init/04_roles.sh
+          
+          # 5. Verify database integrity and security assertions
+          POSTGRES_PASSWORD=ci_owner_password python db/verify.py
+
+      - name: Run Integration Tests
+        env:
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: text2sql
+          POSTGRES_USER: owner
+          POSTGRES_PASSWORD: ci_owner_password
+          ANALYST_RO_PASSWORD: ci_analyst_ro_password
+          ANALYST_PII_RO_PASSWORD: ci_analyst_pii_ro_password
+          APP_RW_PASSWORD: ci_app_rw_password
+          OPENAI_API_KEY: sk-test-mock-key-openai
+        run: |
+          pytest -m integration -v

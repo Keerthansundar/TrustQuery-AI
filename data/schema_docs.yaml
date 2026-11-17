@@ -1,0 +1,135 @@
+# ==============================================================================
+# Schema Documentation and Business Glossary for Text-to-SQL Analyst
+# ==============================================================================
+
+tables:
+  categories:
+    description: "Hierarchical product categories with two levels: 5 top-level root categories (parent_category_id is NULL) and 10 leaf categories. Products reference leaf categories only. Category rollups to root level use categories.parent_category_id self-join."
+    columns:
+      category_id: "INT PRIMARY KEY. Unique identifier for the category."
+      category_name: "TEXT NOT NULL UNIQUE. Name of the category."
+      parent_category_id: "INT NULL REFERENCES categories(category_id). Identifier of the parent category; NULL for root categories."
+
+  customers:
+    description: "Customer accounts and demographics. Contains PII (email, phone) which must never be exposed unless ALLOW_PII is explicitly enabled."
+    columns:
+      customer_id: "INT PRIMARY KEY. Unique identifier for each customer."
+      first_name: "TEXT. First name of the customer."
+      last_name: "TEXT. Last name of the customer. Customer full name is first_name || ' ' || last_name."
+      email: "TEXT NOT NULL UNIQUE. Customer email address (PII - protected)."
+      phone: "TEXT. Customer phone number (PII - protected)."
+      city: "TEXT. City where customer resides."
+      state: "TEXT. State or province of customer."
+      country: "TEXT. Country of residence."
+      signup_date: "DATE. Date customer created their account (YYYY-MM-DD)."
+      segment: "TEXT. Customer market segment. Values: 'consumer', 'corporate', 'small_business'."
+
+  products:
+    description: "Product catalog. Products always reference leaf categories only."
+    columns:
+      product_id: "INT PRIMARY KEY. Unique product identifier."
+      product_name: "TEXT. Commercial name of the product."
+      category_id: "INT REFERENCES categories(category_id). Foreign key to leaf category."
+      brand: "TEXT. Brand or manufacturer name."
+      unit_price: "NUMERIC(10,2). Current list price of product. (Do NOT use for historical revenue; use order_items.unit_price)."
+      cost_price: "NUMERIC(10,2). Cost to acquire/produce product. CHECK(cost_price < unit_price)."
+      created_at: "DATE. Date product was added to catalog."
+      is_active: "BOOLEAN. Flag indicating if product is currently active."
+
+  orders:
+    description: "Order headers representing customer transactions across channels."
+    columns:
+      order_id: "INT PRIMARY KEY. Unique order identifier."
+      customer_id: "INT REFERENCES customers(customer_id). Customer who placed the order."
+      order_date: "DATE. Transaction timestamp date."
+      status: "TEXT. Current order lifecycle state. Values: 'placed', 'shipped', 'delivered', 'cancelled', 'returned'."
+      channel: "TEXT. Sales channel. Values: 'web', 'mobile_app', 'store'."
+      shipping_fee: "NUMERIC(8,2). Shipping charge for the order. Excluded from net line revenue."
+
+  order_items:
+    description: "Line items belonging to an order. Always calculate line revenue from this table."
+    columns:
+      order_item_id: "INT PRIMARY KEY. Unique line item identifier."
+      order_id: "INT REFERENCES orders(order_id). Parent order identifier."
+      product_id: "INT REFERENCES products(product_id). Ordered product identifier."
+      quantity: "INT. Number of units ordered. CHECK(quantity > 0)."
+      unit_price: "NUMERIC(10,2). Purchase-time price per unit. May differ +-5% from products.unit_price."
+      discount_pct: "NUMERIC(5,2). Discount applied as a percentage (0 to 30)."
+
+  payments:
+    description: "Payment records associated with orders. Exactly one payment per order. amount equals item totals + shipping_fee."
+    columns:
+      payment_id: "INT PRIMARY KEY. Unique payment transaction identifier."
+      order_id: "INT UNIQUE REFERENCES orders(order_id). Associated order identifier."
+      payment_date: "DATE. Date payment was processed."
+      payment_method: "TEXT. Payment mechanism. Values: 'credit_card', 'upi', 'paypal', 'bank_transfer', 'cod'."
+      amount: "NUMERIC(12,2). Total monetary amount charged (items net total + shipping_fee)."
+      payment_status: "TEXT. Payment settlement state. Values: 'paid', 'failed', 'refunded', 'pending'."
+
+  shipments:
+    description: "Logistics and shipping tracking. Created only for shipped, delivered, or returned orders; cancelled and placed orders have no shipment."
+    columns:
+      shipment_id: "INT PRIMARY KEY. Unique shipment tracking identifier."
+      order_id: "INT UNIQUE REFERENCES orders(order_id). Associated order identifier."
+      carrier: "TEXT. Delivery courier company."
+      shipped_date: "DATE. Date carrier dispatched the package."
+      delivered_date: "DATE NULL. Date package reached recipient; NULL if still in transit."
+      shipment_status: "TEXT. Shipment status. Values: 'in_transit', 'delivered', 'returned'."
+
+glossary:
+  as_of_date:
+    term: "As-Of Date"
+    definition: "System reference date for reproducible relative-date calculations. Use DATE '2026-11-02' (or the injected as-of date) when a date calculation is required. Do not automatically apply this date as a filter to every query."
+    
+
+  line_revenue:
+    term: "Line Revenue"
+    definition: "order_items.quantity * order_items.unit_price * (1 - order_items.discount_pct / 100.0). Always use order_items.unit_price, never products.unit_price."
+
+  net_revenue:
+    term: "Revenue / Sales / Net Revenue"
+    definition: "Default definition of revenue or sales: SUM of line revenue for orders with status IN ('placed', 'shipped', 'delivered'). Excludes cancelled and returned orders; excludes shipping_fee."
+
+  gross_revenue:
+    term: "Gross Revenue"
+    definition: "SUM of line revenue for all orders except cancelled (includes returned orders). status != 'cancelled'."
+
+  profit:
+    term: "Profit / Net Profit"
+    definition: "SUM of (line_revenue - order_items.quantity * products.cost_price) for orders with status IN ('placed', 'shipped', 'delivered'). Requires joining order_items with products on product_id."
+
+  aov:
+    term: "Average Order Value (AOV)"
+    definition: "Net revenue divided by the count of distinct qualifying orders: SUM(line_revenue) / COUNT(DISTINCT orders.order_id) where status IN ('placed', 'shipped', 'delivered')."
+
+  active_customer:
+    term: "Active Customer"
+    definition: "A customer who has placed at least one non-cancelled order (status != 'cancelled') in the 90 days before the as-of date (orders.order_date >= DATE '<as_of>' - INTERVAL '90 days' AND orders.order_date <= DATE '<as_of>')."
+
+  return_rate:
+    term: "Return Rate"
+    definition: "Count of returned orders (status = 'returned') divided by count of all non-cancelled orders (status != 'cancelled'): COUNT(*) FILTER (WHERE status = 'returned')::numeric / NULLIF(COUNT(*) FILTER (WHERE status != 'cancelled'), 0)."
+
+  delivery_time:
+    term: "Delivery Time"
+    definition: "Duration from dispatch to receipt in days: shipments.delivered_date - shipments.shipped_date."
+
+  fulfilment_time:
+    term: "Fulfilment Time"
+    definition: "Duration from order creation to dispatch in days: shipments.shipped_date - orders.order_date."
+
+  date_relative_windows:
+    term: "Last Quarter / Last Month / Last 30 Days"
+    definition: "'Last quarter' refers to the previous full calendar quarter relative to the as-of date. 'Last month' refers to the previous full calendar month relative to the as-of date. 'Last 30 days' refers to the window between (as_of - 30 days) and as_of."
+
+  customer_full_name:
+    term: "Customer Full Name"
+    definition: "customers.first_name || ' ' || customers.last_name."
+
+  category_rollups:
+    term: "Category Rollup"
+    definition: "Rolling up product sales to top-level root categories requires a self-join: categories leaf JOIN categories root ON leaf.parent_category_id = root.category_id."
+
+  cash_collected:
+    term: "Cash Collected"
+    definition: "SUM(payments.amount) for payments where payment_status = 'paid'."

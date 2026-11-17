@@ -1,0 +1,44 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: text2sql-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-text2sql}
+      POSTGRES_USER: ${POSTGRES_USER:-owner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_this_owner_password}
+      ANALYST_RO_PASSWORD: ${ANALYST_RO_PASSWORD:-change_this_analyst_ro_password}
+      ANALYST_PII_RO_PASSWORD: ${ANALYST_PII_RO_PASSWORD:-change_this_analyst_pii_ro_password}
+      APP_RW_PASSWORD: ${APP_RW_PASSWORD:-change_this_app_rw_password}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+      - ./data/raw:/data/raw:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-owner} -d ${POSTGRES_DB:-text2sql}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  app:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: text2sql-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8501:8501"
+    environment:
+      - POSTGRES_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

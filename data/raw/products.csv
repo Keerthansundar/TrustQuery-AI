@@ -1,0 +1,121 @@
+product_id,product_name,category_id,brand,unit_price,cost_price,created_at,is_active
+1,Nexora UltraBook 14,6,Nexora,497.99,352.63,2023-03-03,1
+2,Veltrix ProBook 15,6,Veltrix,736.99,334.86,2023-02-24,1
+3,Aurion Gaming Laptop 17,6,Aurion,1382.99,1010.24,2023-05-09,1
+4,Zenbyte Student Laptop 13,6,Zenbyte,857.99,640.98,2024-06-25,0
+5,Nexora Workstation 16,6,Nexora,640.99,500.26,2024-03-18,1
+6,Veltrix Chromebook 11,6,Veltrix,660.99,382.28,2023-01-17,1
+7,Aurion Creator Laptop 16,6,Aurion,1034.99,785.66,2024-07-30,1
+8,Zenbyte Business Laptop 14,6,Zenbyte,771.99,569.44,2023-11-29,1
+9,Nexora 2-in-1 Convertible 13,6,Nexora,529.99,331.80,2024-06-13,1
+10,Veltrix Slim Laptop 15,6,Veltrix,1146.99,826.80,2024-05-23,1
+11,Aurion Budget Laptop 15,6,Aurion,473.99,232.56,2023-01-15,1
+12,Zenbyte Rugged Laptop 14,6,Zenbyte,987.99,567.81,2023-07-30,1
+13,Kinetica Nova 5G,7,Kinetica,422.99,290.71,2024-07-04,1
+14,Orbix Pulse Lite,7,Orbix,316.99,207.57,2023-07-23,1
+15,Pulsar Edge Pro,7,Pulsar,295.99,167.42,2023-07-30,1
+16,Veltrix Orbit Max,7,Veltrix,200.99,121.47,2025-12-20,1
+17,Kinetica Spark Mini,7,Kinetica,161.99,121.38,2023-08-21,1
+18,Orbix Zen Ultra,7,Orbix,374.99,170.07,2025-10-04,1
+19,Pulsar Flip Z,7,Pulsar,400.99,314.37,2023-03-30,1
+20,Veltrix Core Plus,7,Veltrix,1098.99,708.73,2024-07-07,1
+21,Kinetica Vista 5G,7,Kinetica,658.99,423.17,2025-10-13,1
+22,Orbix Neo SE,7,Orbix,267.99,133.57,2023-10-08,1
+23,Pulsar Prime X,7,Pulsar,1228.99,565.24,2024-07-05,0
+24,Veltrix Atlas Pro,7,Veltrix,175.99,85.98,2024-08-15,1
+25,SoundCraft Wireless Over-Ear,8,SoundCraft,150.99,71.58,2023-10-09,0
+26,Auralis Noise Cancelling Headphones,8,Auralis,308.99,234.00,2023-12-01,0
+27,Beatwave True Wireless Earbuds,8,Beatwave,104.99,56.49,2024-04-07,1
+28,Kinetica Sport Earbuds,8,Kinetica,154.99,77.01,2023-03-06,1
+29,SoundCraft Studio Monitor Headphones,8,SoundCraft,28.99,16.08,2023-10-05,1
+30,Auralis Gaming Headset,8,Auralis,220.99,103.88,2025-12-05,1
+31,Beatwave Neckband Earphones,8,Beatwave,271.99,154.98,2023-03-12,1
+32,Kinetica Kids Headphones,8,Kinetica,37.99,24.12,2023-09-15,1
+33,SoundCraft Bone Conduction Headset,8,SoundCraft,285.99,221.21,2024-04-09,1
+34,Auralis Wired Earphones,8,Auralis,116.99,92.96,2023-12-26,1
+35,Beatwave Travel Headphones,8,Beatwave,30.99,20.04,2023-10-11,1
+36,Kinetica Open-Back Headphones,8,Kinetica,24.99,16.46,2023-07-25,1
+37,UrbanFit Cotton T-Shirt,9,UrbanFit,21.99,10.21,2023-03-07,1
+38,Northline Slim Fit Jeans,9,Northline,29.99,20.62,2024-07-15,1
+39,Cotton Co Formal Shirt,9,Cotton Co,29.99,22.12,2024-06-03,1
+40,Denimara Hooded Sweatshirt,9,Denimara,14.99,6.93,2025-11-02,1
+41,UrbanFit Chino Trousers,9,UrbanFit,75.99,59.13,2025-01-17,1
+42,Northline Running Shorts,9,Northline,77.99,47.41,2023-01-14,1
+43,Cotton Co Polo Shirt,9,Cotton Co,14.99,8.26,2023-02-28,1
+44,Denimara Winter Jacket,9,Denimara,53.99,29.99,2024-05-21,1
+45,UrbanFit Linen Shirt,9,UrbanFit,111.99,67.61,2024-05-22,1
+46,Northline Track Pants,9,Northline,34.99,22.51,2023-12-19,1
+47,Cotton Co Denim Jacket,9,Cotton Co,83.99,64.52,2025-06-10,1
+48,Denimara Wool Sweater,9,Denimara,37.99,26.47,2023-12-27,1
+49,Lumiere Summer Dress,10,Lumiere,54.99,38.22,2023-05-20,1
+50,Bloomwear Skinny Jeans,10,Bloomwear,83.99,43.93,2024-03-08,1
+51,Northline Silk Blouse,10,Northline,57.99,26.15,2025-10-17,1
+52,Silkroute Cardigan,10,Silkroute,19.99,14.71,2024-01-25,1
+53,Lumiere Yoga Leggings,10,Lumiere,85.99,50.49,2026-05-07,1
+54,Bloomwear Maxi Skirt,10,Bloomwear,55.99,25.21,2023-09-22,0
+55,Northline Puffer Jacket,10,Northline,77.99,50.58,2023-10-02,1
+56,Silkroute Cotton Kurta,10,Silkroute,71.99,39.40,2026-03-19,1
+57,Lumiere Palazzo Pants,10,Lumiere,75.99,60.47,2025-09-01,0
+58,Bloomwear Knit Top,10,Bloomwear,84.99,56.37,2024-08-10,1
+59,Northline Trench Coat,10,Northline,51.99,37.32,2024-01-25,1
+60,Silkroute Denim Shorts,10,Silkroute,18.99,11.08,2024-07-08,1
+61,ChefMate Non-Stick Frying Pan,11,ChefMate,39.99,19.52,2023-08-30,1
+62,Ironwood Stainless Steel Saucepan,11,Ironwood,46.99,21.95,2024-06-19,1
+63,Kitchenaire Cast Iron Skillet,11,Kitchenaire,44.99,22.83,2023-07-10,1
+64,Pantry Pro Pressure Cooker 5L,11,Pantry Pro,22.99,15.11,2024-05-23,1
+65,ChefMate Knife Set,11,ChefMate,27.99,21.30,2023-12-12,1
+66,Ironwood Chef Knife 8in,11,Ironwood,22.99,13.00,2024-07-20,1
+67,Kitchenaire Baking Tray Set,11,Kitchenaire,45.99,36.75,2023-06-06,1
+68,Pantry Pro Stock Pot 8L,11,Pantry Pro,135.99,87.53,2024-06-28,1
+69,ChefMate Casserole Dish,11,ChefMate,51.99,28.72,2024-08-23,1
+70,Ironwood Wok 14in,11,Ironwood,161.99,108.20,2023-11-15,1
+71,Kitchenaire Mixing Bowl Set,11,Kitchenaire,88.99,55.74,2026-05-01,1
+72,Pantry Pro Silicone Spatula Set,11,Pantry Pro,185.99,136.57,2025-04-11,1
+73,HomeNest Ergonomic Office Chair,12,HomeNest,221.99,164.94,2023-04-25,1
+74,Oakridge Standing Desk,12,Oakridge,87.99,49.05,2024-05-01,1
+75,Sitwell Bookshelf 5-Tier,12,Sitwell,143.99,84.30,2023-09-27,1
+76,Woodcraft Sofa 3-Seater,12,Woodcraft,451.99,215.06,2023-06-14,1
+77,HomeNest Dining Table 6-Seater,12,HomeNest,511.99,302.38,2023-09-12,1
+78,Oakridge TV Unit,12,Oakridge,524.99,307.99,2024-08-07,1
+79,Sitwell Bedside Table,12,Sitwell,494.99,273.44,2023-02-08,1
+80,Woodcraft Shoe Rack,12,Woodcraft,531.99,255.56,2023-07-29,1
+81,HomeNest Study Desk,12,HomeNest,893.99,674.35,2025-06-19,1
+82,Oakridge Recliner Chair,12,Oakridge,196.99,108.42,2024-08-30,1
+83,Sitwell Coffee Table,12,Sitwell,232.99,122.79,2026-02-26,1
+84,Woodcraft Wardrobe 2-Door,12,Woodcraft,87.99,47.19,2023-01-03,0
+85,The Silent Harbor,13,Harbor Press,9.99,6.79,2023-11-27,1
+86,Midnight in Marrakesh,13,Lantern Books,21.99,14.53,2024-01-29,1
+87,A Garden of Ashes,13,Northfield Publishing,11.99,6.07,2023-07-01,1
+88,The Last Cartographer,13,Meridian House,15.99,8.75,2024-09-08,1
+89,Salt and Lanterns,13,Harbor Press,20.99,14.36,2024-05-10,1
+90,Echoes of the Orchard,13,Lantern Books,16.99,11.47,2024-07-19,1
+91,The Glass Meridian,13,Northfield Publishing,9.03,7.11,2024-05-09,1
+92,Winter at Larkspur House,13,Meridian House,15.99,7.54,2023-09-23,1
+93,Under a Paper Moon,13,Harbor Press,9.99,7.31,2024-02-17,1
+94,The Weight of Rivers,13,Lantern Books,8.28,6.09,2023-06-26,1
+95,Harvest of Small Stars,13,Northfield Publishing,8.49,6.07,2023-06-01,1
+96,The Violet Hour,13,Meridian House,10.99,8.25,2023-09-06,1
+97,Thinking in Systems at Work,14,Harbor Press,12.99,7.25,2024-05-01,0
+98,The Data Detective,14,Lantern Books,10.99,5.56,2023-07-22,1
+99,Money Made Simple,14,Northfield Publishing,29.99,14.10,2024-08-07,1
+100,The Art of Deep Focus,14,Meridian House,29.99,20.63,2024-08-03,1
+101,Cooking by Ratio,14,Harbor Press,16.99,8.90,2024-09-11,1
+102,A Brief History of Trade,14,Lantern Books,20.99,12.09,2023-08-31,0
+103,Mindful Leadership,14,Northfield Publishing,13.99,7.99,2024-05-16,1
+104,The Startup Playbook,14,Meridian House,14.99,9.74,2024-07-15,1
+105,Sleep Well Live Well,14,Harbor Press,10.99,7.78,2024-09-25,1
+106,Learning to Learn,14,Lantern Books,17.99,9.26,2023-09-30,1
+107,The Curious Economy,14,Northfield Publishing,14.99,11.74,2023-08-12,1
+108,Habits That Stick,14,Meridian House,9.99,6.59,2023-09-01,1
+109,IronPeak Adjustable Dumbbell Set,15,IronPeak,110.99,79.16,2023-07-01,1
+110,FlexFit Yoga Mat,15,FlexFit,17.99,8.25,2023-07-11,1
+111,Stridemax Resistance Band Kit,15,Stridemax,389.99,208.81,2024-09-22,1
+112,Kinetica Treadmill Foldable,15,Kinetica,18.99,9.56,2024-03-13,1
+113,IronPeak Exercise Bike,15,IronPeak,177.99,107.45,2024-04-02,1
+114,FlexFit Kettlebell 12kg,15,FlexFit,245.99,196.12,2024-07-08,0
+115,Stridemax Pull-Up Bar,15,Stridemax,347.99,257.97,2023-09-20,1
+116,Kinetica Foam Roller,15,Kinetica,471.99,290.90,2024-05-27,1
+117,IronPeak Jump Rope,15,IronPeak,99.99,74.78,2024-04-06,1
+118,FlexFit Ab Wheel,15,FlexFit,285.99,224.98,2024-06-07,1
+119,Stridemax Weight Bench,15,Stridemax,205.99,147.27,2025-04-26,1
+120,Kinetica Massage Gun,15,Kinetica,123.99,80.93,2024-08-02,1

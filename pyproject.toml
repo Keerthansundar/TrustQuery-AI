@@ -1,0 +1,40 @@
+[project]
+name = "text2sql-analyst"
+version = "0.1.0"
+description = "Text-to-SQL Analyst using Agentic RAG in plain Python"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line length handled by formatter
+    "B008",  # do not perform function calls in argument defaults (standard in pydantic/fastapi)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src", "evaluation", "db"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+pythonpath = ["."]
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-v --strict-markers"
+markers = [
+    "integration: marks tests requiring live postgres database (deselect with '-m \"not integration\"')",
+    "unit: fast unit tests not requiring external services",
+]

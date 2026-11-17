@@ -1,0 +1,358 @@
+# ==============================================================================
+# 25 PostgreSQL Few-Shot Examples for Text-to-SQL Generation
+# Covers joins, aggregations, date filters, top-N, window functions, CTEs,
+# anti-joins, self-joins, and business metrics.
+# ==============================================================================
+
+examples:
+  - id: ex_01
+    question: "What is our total net revenue to date?"
+    sql: >
+      SELECT
+          ROUND(SUM(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0))::numeric, 2) AS total_revenue
+      FROM public.order_items oi
+      JOIN public.orders o ON oi.order_id = o.order_id
+      WHERE o.status IN ('placed', 'shipped', 'delivered');
+
+  - id: ex_02
+    question: "Show top 5 products by net revenue of all time."
+    sql: >
+      SELECT
+          p.product_id,
+          p.product_name,
+          ROUND(SUM(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0))::numeric, 2) AS total_revenue
+      FROM public.products p
+      JOIN public.order_items oi ON p.product_id = oi.product_id
+      JOIN public.orders o ON oi.order_id = o.order_id
+      WHERE o.status IN ('placed', 'shipped', 'delivered')
+      GROUP BY p.product_id, p.product_name
+      ORDER BY total_revenue DESC
+      LIMIT 5;
+
+  - id: ex_03
+    question: "What was the total net revenue and order count for each sales channel?"
+    sql: >
+      SELECT
+          o.channel,
+          COUNT(DISTINCT o.order_id) AS order_count,
+          ROUND(SUM(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0))::numeric, 2) AS total_revenue
+      FROM public.orders o
+      JOIN public.order_items oi ON o.order_id = oi.order_id
+      WHERE o.status IN ('placed', 'shipped', 'delivered')
+      GROUP BY o.channel
+      ORDER BY total_revenue DESC;
+
+  - id: ex_04
+    question: "Which customers placed orders in the last 30 days?"
+    sql: >
+      SELECT DISTINCT
+          c.customer_id,
+          c.first_name || ' ' || c.last_name AS customer_name,
+          c.segment
+      FROM public.customers c
+      JOIN public.orders o ON c.customer_id = o.customer_id
+      WHERE o.order_date >= (DATE '2026-11-02' - INTERVAL '30 days')
+        AND o.order_date <= DATE '2026-11-02'
+        AND o.status != 'cancelled'
+      ORDER BY c.customer_id
+      LIMIT 100;
+
+  - id: ex_05
+    question: "List customers who have never placed any orders."
+    sql: >
+      SELECT
+          c.customer_id,
+          c.first_name || ' ' || c.last_name AS customer_name,
+          c.signup_date,
+          c.segment
+      FROM public.customers c
+      LEFT JOIN public.orders o ON c.customer_id = o.customer_id
+      WHERE o.order_id IS NULL
+      ORDER BY c.signup_date DESC
+      LIMIT 100;
+
+  - id: ex_06
+    question: "Which products have never been sold?"
+    sql: >
+      SELECT
+          p.product_id,
+          p.product_name,
+          p.brand,
+          p.unit_price
+      FROM public.products p
+      LEFT JOIN public.order_items oi ON p.product_id = oi.product_id
+      WHERE oi.order_item_id IS NULL
+      ORDER BY p.product_id;
+
+  - id: ex_07
+    question: "Show revenue rolled up to the top-level parent categories."
+    sql: >
+      SELECT
+          root.category_id AS root_category_id,
+          root.category_name AS root_category_name,
+          ROUND(SUM(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0))::numeric, 2) AS net_revenue
+      FROM public.categories leaf
+      JOIN public.categories root ON leaf.parent_category_id = root.category_id
+      JOIN public.products p ON leaf.category_id = p.category_id
+      JOIN public.order_items oi ON p.product_id = oi.product_id
+      JOIN public.orders o ON oi.order_id = o.order_id
+      WHERE o.status IN ('placed', 'shipped', 'delivered')
+      GROUP BY root.category_id, root.category_name
+      ORDER BY net_revenue DESC;
+
+  - id: ex_08
+    question: "What is the Average Order Value (AOV) across all completed orders?"
+    sql: >
+      SELECT
+          ROUND(
+              (SUM(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0)) / COUNT(DISTINCT o.order_id))::numeric,
+              2
+          ) AS average_order_value
+      FROM public.orders o
+      JOIN public.order_items oi ON o.order_id = oi.order_id
+      WHERE o.status IN ('placed', 'shipped', 'delivered');
+
+  - id: ex_09
+    question: "Calculate total profit by product brand."
+    sql: >
+      SELECT
+          p.brand,
+          ROUND(
+              SUM(
+                  oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0)
+                  - oi.quantity * p.cost_price
+              )::numeric,
+              2
+          ) AS total_profit
+      FROM public.order_items oi
+      JOIN public.products p ON oi.product_id = p.product_id
+      JOIN public.orders o ON oi.order_id = o.order_id
+      WHERE o.status IN ('placed', 'shipped', 'delivered')
+      GROUP BY p.brand
+      ORDER BY total_profit DESC
+      LIMIT 10;
+
+  - id: ex_10
+    question: "What is the return rate for each customer segment?"
+    sql: >
+      SELECT
+          c.segment,
+          COUNT(*) FILTER (WHERE o.status = 'returned') AS returned_orders,
+          COUNT(*) FILTER (WHERE o.status != 'cancelled') AS non_cancelled_orders,
+          ROUND(
+              (COUNT(*) FILTER (WHERE o.status = 'returned')::numeric /
+               NULLIF(COUNT(*) FILTER (WHERE o.status != 'cancelled'), 0) * 100)::numeric,
+              2
+          ) AS return_rate_pct
+      FROM public.orders o
+      JOIN public.customers c ON o.customer_id = c.customer_id
+      GROUP BY c.segment
+      ORDER BY return_rate_pct DESC;
+
+  - id: ex_11
+    question: "What is the average delivery time in days by shipping carrier?"
+    sql: >
+      SELECT
+          s.carrier,
+          ROUND(AVG(s.delivered_date - s.shipped_date)::numeric, 2) AS avg_delivery_days,
+          COUNT(*) AS completed_shipments
+      FROM public.shipments s
+      WHERE s.delivered_date IS NOT NULL
+      GROUP BY s.carrier
+      ORDER BY avg_delivery_days ASC;
+
+  - id: ex_12
+    question: "List all shipments that are currently in transit with no delivery date."
+    sql: >
+      SELECT
+          s.shipment_id,
+          s.order_id,
+          s.carrier,
+          s.shipped_date,
+          s.shipment_status
+      FROM public.shipments s
+      WHERE s.delivered_date IS NULL
+        AND s.shipment_status = 'in_transit'
+      ORDER BY s.shipped_date ASC
+      LIMIT 100;
+
+  - id: ex_13
+    question: "Show monthly net revenue for 2026 up to the as-of date."
+    sql: >
+      SELECT
+          DATE_TRUNC('month', o.order_date)::date AS order_month,
+          ROUND(SUM(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0))::numeric, 2) AS monthly_revenue
+      FROM public.orders o
+      JOIN public.order_items oi ON o.order_id = oi.order_id
+      WHERE o.status IN ('placed', 'shipped', 'delivered')
+        AND o.order_date >= DATE '2026-01-01'
+        AND o.order_date <= DATE '2026-11-02'
+      GROUP BY DATE_TRUNC('month', o.order_date)::date
+      ORDER BY order_month ASC;
+
+  - id: ex_14
+    question: "Rank products within each category by revenue using a window function."
+    sql: >
+      WITH product_rev AS (
+          SELECT
+              p.category_id,
+              c.category_name,
+              p.product_id,
+              p.product_name,
+              ROUND(SUM(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0))::numeric, 2) AS revenue
+          FROM public.products p
+          JOIN public.categories c ON p.category_id = c.category_id
+          JOIN public.order_items oi ON p.product_id = oi.product_id
+          JOIN public.orders o ON oi.order_id = o.order_id
+          WHERE o.status IN ('placed', 'shipped', 'delivered')
+          GROUP BY p.category_id, c.category_name, p.product_id, p.product_name
+      )
+      SELECT
+          category_name,
+          product_name,
+          revenue,
+          DENSE_RANK() OVER (PARTITION BY category_id ORDER BY revenue DESC) AS category_rank
+      FROM product_rev
+      ORDER BY category_name, category_rank
+      LIMIT 100;
+
+  - id: ex_15
+    question: "How much cash has been successfully collected by each payment method?"
+    sql: >
+      SELECT
+          p.payment_method,
+          ROUND(SUM(p.amount)::numeric, 2) AS cash_collected
+      FROM public.payments p
+      WHERE p.payment_status = 'paid'
+      GROUP BY p.payment_method
+      ORDER BY cash_collected DESC;
+
+  - id: ex_16
+    question: "How many active customers do we have based on the 90-day rule?"
+    sql: >
+      SELECT
+          COUNT(DISTINCT customer_id) AS active_customer_count
+      FROM public.orders
+      WHERE order_date >= (DATE '2026-11-02' - INTERVAL '90 days')
+        AND order_date <= DATE '2026-11-02'
+        AND status != 'cancelled';
+
+  - id: ex_17
+    question: "What is the average fulfilment time in days from order placement to shipping?"
+    sql: >
+      SELECT
+          ROUND(AVG(s.shipped_date - o.order_date)::numeric, 2) AS avg_fulfilment_days
+      FROM public.orders o
+      JOIN public.shipments s ON o.order_id = s.order_id;
+
+  - id: ex_18
+    question: "Find customers who placed more than 5 delivered orders."
+    sql: >
+      SELECT
+          c.customer_id,
+          c.first_name || ' ' || c.last_name AS customer_name,
+          COUNT(o.order_id) AS delivered_order_count
+      FROM public.customers c
+      JOIN public.orders o ON c.customer_id = o.customer_id
+      WHERE o.status = 'delivered'
+      GROUP BY c.customer_id, c.first_name, c.last_name
+      HAVING COUNT(o.order_id) > 5
+      ORDER BY delivered_order_count DESC
+      LIMIT 50;
+
+  - id: ex_19
+    question: "Show total gross revenue vs net revenue."
+    sql: >
+      SELECT
+          ROUND(SUM(CASE WHEN o.status != 'cancelled' THEN oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0) ELSE 0 END)::numeric, 2) AS gross_revenue,
+          ROUND(SUM(CASE WHEN o.status IN ('placed', 'shipped', 'delivered') THEN oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0) ELSE 0 END)::numeric, 2) AS net_revenue
+      FROM public.order_items oi
+      JOIN public.orders o ON oi.order_id = o.order_id;
+
+  - id: ex_20
+    question: "What was the total revenue in the last full calendar quarter?"
+    sql: >
+      SELECT
+          ROUND(SUM(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0))::numeric, 2) AS last_quarter_revenue
+      FROM public.order_items oi
+      JOIN public.orders o ON oi.order_id = o.order_id
+      WHERE o.status IN ('placed', 'shipped', 'delivered')
+        AND o.order_date >= DATE_TRUNC('quarter', DATE '2026-11-02' - INTERVAL '3 months')::date
+        AND o.order_date < DATE_TRUNC('quarter', DATE '2026-11-02')::date;
+
+  - id: ex_21
+    question: "Find the top 3 spending customers in the corporate segment."
+    sql: >
+      SELECT
+          c.customer_id,
+          c.first_name || ' ' || c.last_name AS customer_name,
+          ROUND(SUM(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0))::numeric, 2) AS total_spent
+      FROM public.customers c
+      JOIN public.orders o ON c.customer_id = o.customer_id
+      JOIN public.order_items oi ON o.order_id = oi.order_id
+      WHERE c.segment = 'corporate'
+        AND o.status IN ('placed', 'shipped', 'delivered')
+      GROUP BY c.customer_id, c.first_name, c.last_name
+      ORDER BY total_spent DESC
+      LIMIT 3;
+
+  - id: ex_22
+    question: "What is the average discount percentage offered by brand?"
+    sql: >
+      SELECT
+          p.brand,
+          ROUND(AVG(oi.discount_pct)::numeric, 2) AS avg_discount_pct,
+          COUNT(oi.order_item_id) AS items_sold
+      FROM public.products p
+      JOIN public.order_items oi ON p.product_id = oi.product_id
+      JOIN public.orders o ON oi.order_id = o.order_id
+      WHERE o.status IN ('placed', 'shipped', 'delivered')
+      GROUP BY p.brand
+      ORDER BY avg_discount_pct DESC
+      LIMIT 10;
+
+  - id: ex_23
+    question: "Show the cumulative running total of net revenue by month."
+    sql: >
+      WITH monthly AS (
+          SELECT
+              DATE_TRUNC('month', o.order_date)::date AS m_date,
+              SUM(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100.0)) AS rev
+          FROM public.orders o
+          JOIN public.order_items oi ON o.order_id = oi.order_id
+          WHERE o.status IN ('placed', 'shipped', 'delivered')
+          GROUP BY DATE_TRUNC('month', o.order_date)::date
+      )
+      SELECT
+          m_date AS month,
+          ROUND(rev::numeric, 2) AS month_revenue,
+          ROUND(SUM(rev) OVER (ORDER BY m_date)::numeric, 2) AS cumulative_revenue
+      FROM monthly
+      ORDER BY m_date;
+
+  - id: ex_24
+    question: "Count orders and distinct customers by country."
+    sql: >
+      SELECT
+          c.country,
+          COUNT(DISTINCT c.customer_id) AS customer_count,
+          COUNT(o.order_id) AS order_count
+      FROM public.customers c
+      LEFT JOIN public.orders o ON c.customer_id = o.customer_id
+      GROUP BY c.country
+      ORDER BY order_count DESC;
+
+  - id: ex_25
+    question: "List orders where the payment status is refunded along with the payment amount."
+    sql: >
+      SELECT
+          o.order_id,
+          o.order_date,
+          o.status AS order_status,
+          p.payment_method,
+          p.amount AS refunded_amount
+      FROM public.orders o
+      JOIN public.payments p ON o.order_id = p.order_id
+      WHERE p.payment_status = 'refunded'
+      ORDER BY o.order_date DESC
+      LIMIT 50;
